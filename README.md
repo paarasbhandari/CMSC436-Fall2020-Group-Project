@@ -7,3 +7,7 @@ Matthew Peregoy
 
 Group Topic:
 Blockchain!
+
+TODO List:
+- Design a layout
+- Make the App
