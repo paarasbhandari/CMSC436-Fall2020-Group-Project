@@ -44,13 +44,31 @@
         app:layout_constraintTop_toBottomOf="@+id/username" />
 
     <Button
+        android:id="@+id/forgot_username_or_password"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="10dp"
+        android:enabled="true"
+        android:text="@string/forgot_user_pass"
+        android:textSize="12dp"
+        app:layout_constraintEnd_toEndOf="@+id/password"
+        app:layout_constraintTop_toBottomOf="@+id/password" />
+        <!--
+        android:autofillHints="@string/forgot_user_pass"
+        android:hint="@string/forgot_user_pass"
+        -->
+
+
+    <Button
         android:id="@+id/login"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_gravity="start"
-        android:layout_marginStart="48dp"
+        android:layout_marginStart="@dimen/sign_in_side_margin"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="48dp"
+        android:layout_marginEnd="@dimen/sign_in_side_margin"
         android:layout_marginBottom="64dp"
         android:enabled="true"
         android:text="@string/action_sign_in_short"
