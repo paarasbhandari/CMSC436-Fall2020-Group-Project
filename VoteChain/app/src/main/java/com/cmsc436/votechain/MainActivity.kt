@@ -13,8 +13,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        val email = "emailFake@gmail.com"
+        auth = FirebaseAuth.getInstance()
+        val email = "emailF676ake@gmail.com"
         val password = "password_value"
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this) { task ->
