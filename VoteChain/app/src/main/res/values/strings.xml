@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">VoteChain</string>
+    <string name="login">Login</string>
+    <string name="password">Password...</string>
+    <string name="email">Email...</string>
+    <string name="account_login">Log In</string>
+    <string name="register">Register</string>
+    <string name="registration_title">Register</string>
+    <string name="cnf_password">Confirm Password...</string>
 </resources>
