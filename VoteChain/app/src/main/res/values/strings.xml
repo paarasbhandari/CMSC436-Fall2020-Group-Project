@@ -7,4 +7,5 @@
     <string name="register">Register</string>
     <string name="registration_title">Register</string>
     <string name="cnf_password">Confirm Password...</string>
+    <string name="vote_btn_text">Submit Vote</string>
 </resources>

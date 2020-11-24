@@ -17,6 +17,7 @@ private lateinit var passwordEditText: EditText
 private lateinit var passwordCnfEditText: EditText
 private lateinit var registerBtn: Button
 
+
 class RegistrationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
