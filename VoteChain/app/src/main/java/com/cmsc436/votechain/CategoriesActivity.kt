@@ -2,6 +2,7 @@ package com.cmsc436.votechain
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -17,6 +18,19 @@ internal lateinit var listViewCategories: ListView
 
 
 class CategoriesActivity : AppCompatActivity() {
+
+
+    companion object {
+
+        private const val REQUEST_CODE = 1
+        private const val CATEGORY_KEY = "CATEGORY_KEY"
+        private const val VOTE_KEY = "VOTE_KEY"
+        private const val VOTE_CATEGORY = "VOTE_CATEGORY"
+        private const val VOTE_VALUE = "VOTE_VALUE"
+        private const val TAG = "Votechain-CategoriesActivity"
+
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_categories)
@@ -33,8 +47,7 @@ class CategoriesActivity : AppCompatActivity() {
             //creating an intent
             val intent = Intent(applicationContext, VotingActivity::class.java)
             intent.putExtra("CATEGORY", category)
-            startActivityForResult(intent, 1)
-
+            startActivityForResult(intent, REQUEST_CODE)
 
         }
 
@@ -67,6 +80,22 @@ class CategoriesActivity : AppCompatActivity() {
     override fun onBackPressed() {
         //disabling back button
         Toast.makeText(applicationContext, "Click Options Menu to Log Out.", Toast.LENGTH_LONG).show()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        Log.d(TAG, "Entered onActivityResult")
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_CODE) {
+
+            val cat = data!!.getStringExtra(VOTE_CATEGORY)
+            val vote = data.getStringExtra(VOTE_VALUE)
+            Log.d(TAG, "$cat\n$vote\n")
+
+            if (resultCode == RESULT_OK) {
+
+            }
+        }
     }
 
 }
