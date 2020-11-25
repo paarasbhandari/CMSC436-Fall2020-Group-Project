@@ -84,10 +84,10 @@ class CategoriesActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         Log.d(TAG, "Entered onActivityResult")
-        super.onActivityResult(requestCode, resultCode, data)
+
 
         if (requestCode == REQUEST_CODE) {
-
+            super.onActivityResult(requestCode, resultCode, data)
             val cat = data!!.getStringExtra(VOTE_CATEGORY)
             val vote = data.getStringExtra(VOTE_VALUE)
             Log.d(TAG, "$cat\n$vote\n")
