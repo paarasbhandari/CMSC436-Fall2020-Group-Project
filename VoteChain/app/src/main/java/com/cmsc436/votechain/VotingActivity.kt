@@ -14,35 +14,59 @@ import androidx.appcompat.app.AppCompatActivity
 //private var mVotingRadioGroup: RadioGroup? = null   //The RadioGroup variable
 //private var mVoteButton: RadioButton? = null        //The Button user selects
 var radioGroup: RadioGroup? = null
-var radioButton: RadioButton? = null
-var textView: TextView? = null
+var radioBtn1: RadioButton? = null
+var radioBtn2: RadioButton? = null
+var radioBtn3: RadioButton? = null
+var radioBtn4: RadioButton? = null
+var voteValue: String? = null
 var votingList: Array<String>? = null
 
 
 class VotingActivity : AppCompatActivity() {
+
+    companion object {
+
+        private const val RESULT_CODE = 1
+        private const val VOTE_VALUE = "VOTE_VALUE"
+        private const val VOTE_CATEGORY = "VOTE_CATEGORY"
+        private const val TAG = "Votechain-CategoriesActivity"
+
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_voting)
 
-        //radioGroup = findViewById(R.id.listViewVotes)
+
+
         radioGroup = findViewById<View>(R.id.listViewVotes) as RadioGroup
-
-
-        val submit: Button = findViewById(R.id.submit)
+        radioBtn1 = findViewById<RadioButton>(R.id.Vote1)
+        radioBtn2 = findViewById<RadioButton>(R.id.Vote2)
+        radioBtn3 = findViewById<RadioButton>(R.id.Vote3)
+        radioBtn4 = findViewById<RadioButton>(R.id.Vote4)
+        var radioBtnList = arrayOf(radioBtn1, radioBtn2, radioBtn3, radioBtn4)
 
         val category = intent.getStringExtra("CATEGORY")
-        if (category.equals("Superhero")){
-            votingList = arrayOf("Batman", "Superman", "Spiderman", "Wolverine")
-            var radioBtn1 = radioGroup?.findViewById<RadioButton>(R.id.Vote1)
-            radioBtn1?.text = "Batman"
-            var radioBtn2 = radioGroup?.findViewById<RadioButton>(R.id.Vote2)
-            radioBtn2?.text = "Superman"
-            var radioBtn3 = radioGroup?.findViewById<RadioButton>(R.id.Vote3)
-            radioBtn3?.text = "Spiderman"
+
+        var oldVoteValue = ""
+
+        if (category.equals("TV Show")){
+            votingList = arrayOf("Breaking Bad", "Friends", "Narcos", "Game of Thrones")
+            oldVoteValue = intent.getStringExtra("TV_SHOW_VOTE_VALUE").toString()
+        } else if (category.equals("Superhero")){
+            votingList = arrayOf("Spiderman", "Batman", "Superman", "Iron Man")
+            oldVoteValue = intent.getStringExtra("SUPERHERO_VOTE_VALUE").toString()
+        } else if (category.equals("Beverage")){
+            votingList = arrayOf("Tea", "Beer", "Coffee", "Wine")
+            oldVoteValue = intent.getStringExtra("BEVERAGE_VOTE_VALUE").toString()
+        }
+
+        if (oldVoteValue != null && !oldVoteValue.isEmpty() && !oldVoteValue.equals("null")){
+            radioBtnList.get(getIndex(votingList!!, oldVoteValue))?.isChecked = true
         }
 
 
-        val counter = 0
+        setOptionsText()
 
         radioGroup!!.setOnCheckedChangeListener(RadioGroup.OnCheckedChangeListener { group, checkedId ->
             // This will get the radiobutton that has changed in its check state
@@ -51,43 +75,38 @@ class VotingActivity : AppCompatActivity() {
             val isChecked = checkedRadioButton.isChecked
             // If the radiobutton that has changed in check state is now checked...
             if (isChecked) {
-                var voteValue = checkedRadioButton.text
-
+                voteValue = checkedRadioButton.text as String
             }
-
         })
 
-//        submit.setOnClickListener(View.OnClickListener { i ->
-//            val vote = votingList[counter]
-//            val vote_value = counter
-//            val radioId = radioGroup!!.checkedRadioButtonId
-//            radioButton = findViewById(radioId)
-//            textView!!.text = "Your choice: " + radioButton!!.getText()
-//            val intent = Intent(applicationContext, VotingActivity::class.java).putExtra(
-//                "VOTE_CATEGORY",
-//                vote
-//            ).putExtra("VOTE_VALUE", vote_value)
-//            startActivityForResult(intent, 1)
-//        })
+        val submit: Button = findViewById(R.id.submit)
+
+        submit.setOnClickListener(View.OnClickListener { i ->
+            val returnIntent = Intent()
+            returnIntent.putExtra(VOTE_CATEGORY, category)
+            returnIntent.putExtra(VOTE_VALUE, voteValue)
+            setResult(RESULT_CODE, returnIntent)
+            finish()
+        })
 
 
-        /** mVotingRadioGroup.onItemClickListener = AdapterView.OnItemClickListener { adapterView, view, i, l ->
-        val vote = votingList[i]
-        val vote_value = i
-        //creating an intent
-        val intent = Intent(applicationContext, VotingActivity::class.java).putExtra("VOTE_CATEGORY", vote).putExtra("VOTE_VALUE", vote_value)
-        intent.putExtra("CATEGORY", vote)
-        startActivityForResult(intent, 1)
+    }
+
+    private fun setOptionsText(){
+        radioBtn1?.text = votingList?.get(0)
+        radioBtn2?.text = votingList?.get(1)
+        radioBtn3?.text = votingList?.get(2)
+        radioBtn4?.text = votingList?.get(3)
+    }
+
+    private fun getIndex(list: Array<String>, a: String): Int{
+        for (x in (0..3)){
+            if (list.get(x).equals(a)){
+                return x
+            }
         }
-         **/
+        return -1
     }
 
-    fun checkButton(v: View?) {
-        val radioId = radioGroup!!.checkedRadioButtonId
-        radioButton = findViewById(radioId)
-        Toast.makeText(
-            this, "Selected Radio Button: " + radioButton!!.getText(),
-            Toast.LENGTH_SHORT
-        ).show()
-    }
+
 }

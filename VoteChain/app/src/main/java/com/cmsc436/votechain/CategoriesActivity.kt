@@ -6,15 +6,16 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.ListView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 
 private lateinit var auth: FirebaseAuth
 internal lateinit var listViewCategories: ListView
+private var beverageVoteValue: String ?= null
+private var tvShowVoteValue: String ?= null
+private var superheroVoteValue: String ?= null
+private var submitBtn: Button?= null
 
 
 class CategoriesActivity : AppCompatActivity() {
@@ -28,6 +29,7 @@ class CategoriesActivity : AppCompatActivity() {
         private const val VOTE_CATEGORY = "VOTE_CATEGORY"
         private const val VOTE_VALUE = "VOTE_VALUE"
         private const val TAG = "Votechain-CategoriesActivity"
+        private const val BLANK_VOTE = ""
 
     }
 
@@ -47,6 +49,9 @@ class CategoriesActivity : AppCompatActivity() {
             //creating an intent
             val intent = Intent(applicationContext, VotingActivity::class.java)
             intent.putExtra("CATEGORY", category)
+            intent.putExtra("SUPERHERO_VOTE_VALUE", superheroVoteValue)
+            intent.putExtra("TV_SHOW_VOTE_VALUE", tvShowVoteValue)
+            intent.putExtra("BEVERAGE_VOTE_VALUE", beverageVoteValue)
             startActivityForResult(intent, REQUEST_CODE)
 
         }
@@ -55,10 +60,30 @@ class CategoriesActivity : AppCompatActivity() {
         auth.addAuthStateListener {
             val user = auth.currentUser
             if (user==null){
+                resetVotes()
                 val intent = Intent(this@CategoriesActivity, LoginActivity::class.java)
                 startActivity(intent)
             }
         }
+
+        submitBtn = findViewById<Button>(R.id.submit_vote)
+        submitBtn?.setOnClickListener(View.OnClickListener { i ->
+
+            if (tvShowVoteValue == null){
+                Toast.makeText(applicationContext, "Please vote for TV Show", Toast.LENGTH_LONG).show()
+            }  else if (superheroVoteValue == null){
+                Toast.makeText(applicationContext, "Please vote for Superhero", Toast.LENGTH_LONG).show()
+            } else if (beverageVoteValue == null){
+                Toast.makeText(applicationContext, "Please vote for Beverage", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(applicationContext, "SUBMITTING VOTES", Toast.LENGTH_LONG).show()
+
+            }
+
+        })
+
+
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -70,6 +95,7 @@ class CategoriesActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.item1 -> {
+                resetVotes()
                 auth.signOut()
                 true
             }
@@ -85,17 +111,26 @@ class CategoriesActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         Log.d(TAG, "Entered onActivityResult")
 
-
-        if (requestCode == REQUEST_CODE) {
+        if (requestCode == resultCode) {
             super.onActivityResult(requestCode, resultCode, data)
-            val cat = data!!.getStringExtra(VOTE_CATEGORY)
-            val vote = data.getStringExtra(VOTE_VALUE)
-            Log.d(TAG, "$cat\n$vote\n")
-
-            if (resultCode == RESULT_OK) {
-
+            val category = data!!.getStringExtra(VOTE_CATEGORY)
+            val voteValue = data.getStringExtra(VOTE_VALUE)
+            if (voteValue != null && !voteValue?.isEmpty()){
+                if (category.equals("TV Show")){
+                    tvShowVoteValue = voteValue
+                } else if (category.equals("Superhero")){
+                    superheroVoteValue = voteValue
+                } else if (category.equals("Beverage")){
+                    beverageVoteValue = voteValue
+                }
             }
         }
+    }
+
+    private fun resetVotes(){
+        tvShowVoteValue = null
+        superheroVoteValue = null
+        beverageVoteValue = null
     }
 
 }
