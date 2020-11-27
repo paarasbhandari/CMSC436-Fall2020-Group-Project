@@ -78,8 +78,8 @@ class CategoriesActivity : AppCompatActivity() {
         auth.addAuthStateListener {
             val user = auth.currentUser
             if (user==null){
-                resetVotes()
-                signOut()
+                val signOutIntent = Intent(this@CategoriesActivity, LoginActivity::class.java)
+                startActivity(signOutIntent)
             }
         }
 
@@ -116,7 +116,7 @@ class CategoriesActivity : AppCompatActivity() {
                                 Toast.makeText(
                                     applicationContext,
                                     "Submitting your vote. Please wait!",
-                                    Toast.LENGTH_LONG
+                                    Toast.LENGTH_SHORT
                                 ).show()
 
                                 submitVotes()
@@ -196,7 +196,7 @@ class CategoriesActivity : AppCompatActivity() {
                         // This method is called once with the initial value and again
                         // whenever data at this location is updated.
                         val value = dataSnapshot.getValue()
-                        if(value!=null){
+                        if (value != null) {
                             val hashStr = value as String
                             hashMap.put(PREV_HASH_KEY, hashStr)
                         }
@@ -208,54 +208,138 @@ class CategoriesActivity : AppCompatActivity() {
                             ref?.setValue(hashMap)
 
 
+                            Toast.makeText(
+                                applicationContext,
+                                "Vote Submitted. Verifying... \nPlease wait!",
+                                Toast.LENGTH_LONG
+                            ).show()
+
+
                             // verify chain
 
-                            database?.getReference("blocks")?.addListenerForSingleValueEvent(object : ValueEventListener {
-                                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                                    // This method is called once with the initial value and again
-                                    // whenever data at this location is updated.
-                                    val value = dataSnapshot.getValue() as HashMap<String,String>
-                                    Log.i(TAG, value.size.toString())
+                            database?.getReference("blocks")
+                                ?.addListenerForSingleValueEvent(object :
+                                    ValueEventListener {
+                                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                        // This method is called once with the initial value and again
+                                        // whenever data at this location is updated.
+                                        val chain =
+                                            dataSnapshot.getValue() as HashMap<String, String>
+                                        Log.i(TAG, chain.size.toString())
 
-                                    if (value.size == 1){
-                                        // only 1 block exists in the list
-                                        latestHashRef?.addListenerForSingleValueEvent(object : ValueEventListener {
-                                            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                                                // This method is called once with the initial value and again
-                                                // whenever data at this location is updated.
-                                                val value = dataSnapshot.getValue()
-                                                if(value!=null){
-                                                    val prevHashStr = value as String
-                                                    if(prevHashStr!=hash){
-                                                        val builder = AlertDialog.Builder(this@CategoriesActivity)
-                                                        builder.setMessage("VOTING FRAUD DETECTED. \nDESTROYING VOTE CHAIN")
-                                                            .setCancelable(false)
-                                                            .setPositiveButton("Ok") { dialog, id ->
-                                                                destroyVoteChain()
-                                                            }
-                                                        val alert = builder.create()
-                                                        alert.show()
+                                        if (chain.size == 1) {
+                                            // only 1 block exists in the list
+                                            latestHashRef?.addListenerForSingleValueEvent(object :
+                                                ValueEventListener {
+                                                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                                    // This method is called once with the initial value and again
+                                                    // whenever data at this location is updated.
+                                                    val value = dataSnapshot.getValue()
+                                                    if (value != null) {
+                                                        fraudDetected()
+                                                    } else {
+                                                        latestHashRef.setValue(hash)
+                                                        Toast.makeText(
+                                                            applicationContext,
+                                                            "Vote Verified! Thank you.",
+                                                            Toast.LENGTH_LONG
+                                                        ).show()
                                                     }
-                                                } else {
-                                                    latestHashRef.setValue(hash)
                                                 }
-                                            }
-                                            override fun onCancelled(error: DatabaseError) {
-                                            }
-                                        })
-                                    } else {
-                                        //longer chain existing
+
+                                                override fun onCancelled(error: DatabaseError) {
+                                                }
+                                            })
+                                        } else {
+                                            Log.i(TAG, "VoteChain is longer than 1")
+                                            latestHashRef.setValue(hash)
+                                            latestHashRef?.addListenerForSingleValueEvent(object :
+                                                ValueEventListener {
+                                                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                                    // This method is called once with the initial value and again
+                                                    // whenever data at this location is updated.
+                                                    val value = dataSnapshot.getValue()
+                                                    if (value != null) {
+                                                        val prevHashStr = value as String
+
+                                                        val ref = database?.getReference("blocks")
+                                                        ref?.addListenerForSingleValueEvent(object :
+                                                            ValueEventListener {
+                                                            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                                                // This method is called once with the initial value and again
+                                                                // whenever data at this location is updated.
+
+                                                                val map = dataSnapshot.getValue() as HashMap<String, HashMap<String, String>>
+                                                                Log.i(TAG, value.toString())
+                                                                val keySet = map.keys
+
+                                                                var currHash = prevHashStr
+                                                                var reachedGenesis = false
+                                                                while(true){
+                                                                    var foundHash = false
+                                                                    map.forEach { (key, value) ->
+                                                                        Log.i(TAG,"Hello")
+                                                                        if(map.get(key)?.get(HASH_KEY)==currHash ){
+                                                                            if(map.get(key)?.get(
+                                                                                    IS_GENESIS_KEY)=="TRUE"){
+                                                                                reachedGenesis = true
+                                                                            }
+                                                                            if (map.get(key)?.get(
+                                                                                    IS_GENESIS_KEY)=="FALSE" && map.get(key)?.get(HASH_KEY) != map.get(key)?.get(PREV_HASH_KEY)){
+                                                                                foundHash = true
+                                                                                currHash = map.get(key)?.get(PREV_HASH_KEY)
+                                                                                    .toString()
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    if(reachedGenesis){
+                                                                        Toast.makeText(
+                                                                            applicationContext,
+                                                                            "Vote Verified! Thank you.",
+                                                                            Toast.LENGTH_LONG
+                                                                        ).show()
+                                                                        break
+                                                                    }
+                                                                    if (!foundHash){
+                                                                        fraudDetected()
+                                                                        break
+                                                                    }
+                                                                }
+
+                                                            }
+
+                                                            override fun onCancelled(error: DatabaseError) {
+
+                                                            }
+                                                        })
+
+
+                                                    } else {
+                                                        Toast.makeText(
+                                                            applicationContext,
+                                                            "Error 1",
+                                                            Toast.LENGTH_LONG
+                                                        )
+                                                            .show()
+                                                    }
+                                                }
+
+                                                override fun onCancelled(error: DatabaseError) {
+                                                }
+                                            })
+                                        }
                                     }
-                                }
-                                override fun onCancelled(error: DatabaseError) {
-                                }
-                            })
+
+                                    override fun onCancelled(error: DatabaseError) {
+                                    }
+                                })
 
                         } else {
                             Toast.makeText(applicationContext, "UID is null", Toast.LENGTH_LONG)
                                 .show()
                         }
                     }
+
                     override fun onCancelled(error: DatabaseError) {
                     }
                 })
@@ -285,6 +369,18 @@ class CategoriesActivity : AppCompatActivity() {
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun fraudDetected(){
+        val builder =
+            AlertDialog.Builder(this@CategoriesActivity)
+        builder.setMessage("VOTING FRAUD DETECTED. \nDESTROYING VOTE CHAIN")
+            .setCancelable(false)
+            .setPositiveButton("Ok") { dialog, id ->
+                destroyVoteChain()
+            }
+        val alert = builder.create()
+        alert.show()
     }
 
     private fun signOut(){
