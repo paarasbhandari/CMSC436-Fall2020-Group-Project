@@ -39,15 +39,14 @@ class CategoriesActivity : AppCompatActivity() {
         private const val VOTE_VALUE = "VOTE_VALUE"
         private const val TAG = "Votechain-CategoriesActivity"
         private const val BLANK_VOTE = ""
-        private const val SUPER_HERO_VOTE_KEY = "SUPERHERO_VOTE_VALUE"
-        private const val BEVERAGE_VOTE_KEY = "BEVERAGE_VOTE_VALUE"
-        private const val TV_SHOW_VOTE_KEY = "TV_SHOW_VOTE_VALUE"
+        const val SUPER_HERO_VOTE_KEY = "SUPERHERO_VOTE_VALUE"
+        const val BEVERAGE_VOTE_KEY = "BEVERAGE_VOTE_VALUE"
+        const val TV_SHOW_VOTE_KEY = "TV_SHOW_VOTE_VALUE"
         private const val HASH_KEY = "HASH_KEY"
         private const val IS_GENESIS_KEY  = "IS_GENESIS"
         private const val IS_GENESIS_TRUE  = "TRUE"
         private const val IS_GENESIS_FALSE  = "FALSE"
         private const val PREV_HASH_KEY  = "PREV_HASH"
-
 
     }
 
@@ -71,7 +70,6 @@ class CategoriesActivity : AppCompatActivity() {
             intent.putExtra(TV_SHOW_VOTE_KEY, tvShowVoteValue)
             intent.putExtra(BEVERAGE_VOTE_KEY, beverageVoteValue)
             startActivityForResult(intent, REQUEST_CODE)
-
         }
 
         auth = FirebaseAuth.getInstance()
@@ -84,7 +82,6 @@ class CategoriesActivity : AppCompatActivity() {
         }
 
         database = FirebaseDatabase.getInstance()
-
 
         submitBtn = findViewById<Button>(R.id.submit_vote)
         submitBtn?.setOnClickListener(View.OnClickListener { i ->
@@ -149,7 +146,7 @@ class CategoriesActivity : AppCompatActivity() {
         val user = auth.currentUser
         if(user!=null){
             val uid = user.uid
-            val s = uid+TV_SHOW_VOTE_KEY+tvShowVoteValue+SUPER_HERO_VOTE_KEY+ superheroVoteValue+BEVERAGE_VOTE_KEY+beverageVoteValue
+            val s = uid+TV_SHOW_VOTE_KEY+tvShowVoteValue+SUPER_HERO_VOTE_KEY+superheroVoteValue+BEVERAGE_VOTE_KEY+beverageVoteValue
             return s
         }
         return ""
@@ -171,10 +168,10 @@ class CategoriesActivity : AppCompatActivity() {
                 val hashMap: HashMap<String, String> = HashMap<String, String>()
                 if (voteStr != "") {
 
-                    superheroVoteValue?.let { hashMap.put(SUPER_HERO_VOTE_KEY, it) }
-                    beverageVoteValue?.let { hashMap.put(BEVERAGE_VOTE_KEY, it) }
-                    tvShowVoteValue?.let { hashMap.put(TV_SHOW_VOTE_KEY, it) }
-                    hashMap.put(HASH_KEY, hash)
+                    superheroVoteValue?.let { hashMap[SUPER_HERO_VOTE_KEY] = it }
+                    beverageVoteValue?.let { hashMap[BEVERAGE_VOTE_KEY] = it }
+                    tvShowVoteValue?.let { hashMap[TV_SHOW_VOTE_KEY] = it }
+                    hashMap[HASH_KEY] = hash
 
                 } else {
                     Toast.makeText(applicationContext, "Vote String is Empty", Toast.LENGTH_LONG)
@@ -415,17 +412,18 @@ class CategoriesActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         Log.d(TAG, "Entered onActivityResult")
 
-        if (requestCode == resultCode) {
-            super.onActivityResult(requestCode, resultCode, data)
-            val category = data!!.getStringExtra(VOTE_CATEGORY)
-            val voteValue = data.getStringExtra(VOTE_VALUE)
-            if (voteValue != null && !voteValue?.isEmpty()){
-                if (category.equals("TV Show")){
-                    tvShowVoteValue = voteValue
-                } else if (category.equals("Superhero")){
-                    superheroVoteValue = voteValue
-                } else if (category.equals("Beverage")){
-                    beverageVoteValue = voteValue
+        if (requestCode == REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                super.onActivityResult(requestCode, resultCode, data)
+                val category = data!!.getStringExtra(VOTE_CATEGORY)
+                val voteValue = data.getStringExtra(VOTE_VALUE)
+
+                if (voteValue != null && voteValue?.isNotEmpty()) {
+                    when (category) {
+                        "TV Show" -> tvShowVoteValue = voteValue
+                        "Superhero" -> superheroVoteValue = voteValue
+                        "Beverage" -> beverageVoteValue = voteValue
+                    }
                 }
             }
         }

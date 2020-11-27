@@ -15,33 +15,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:orientation="vertical">
-
-        <RadioButton
-            android:id="@+id/Vote1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-             />
-        <RadioButton
-            android:id="@+id/Vote2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-             />
-        <RadioButton
-            android:id="@+id/Vote3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-             />
-        <RadioButton
-            android:id="@+id/Vote4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            />
-
     </RadioGroup>
-
-
-
-
 
     <Button
         android:id="@+id/submit"
