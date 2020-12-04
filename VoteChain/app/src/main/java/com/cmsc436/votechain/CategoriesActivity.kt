@@ -29,6 +29,7 @@ private var database: FirebaseDatabase? = null
 
 class CategoriesActivity : AppCompatActivity() {
 
+    // small change for push
 
     companion object {
 
@@ -56,7 +57,7 @@ class CategoriesActivity : AppCompatActivity() {
 
         listViewCategories = findViewById<View>(R.id.listViewCategories) as ListView
         val categoryList = arrayOf("TV Show", "Superhero", "Beverage")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, categoryList)
+        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_checked, categoryList)
         listViewCategories.adapter = adapter
 
         listViewCategories.onItemClickListener = AdapterView.OnItemClickListener { adapterView, view, i, l ->
@@ -66,6 +67,8 @@ class CategoriesActivity : AppCompatActivity() {
             //creating an intent
             val intent = Intent(applicationContext, VotingActivity::class.java)
             intent.putExtra("CATEGORY", category)
+            intent.putExtra("CURENT_VOTE", current_vote)
+
             intent.putExtra(SUPER_HERO_VOTE_KEY, superheroVoteValue)
             intent.putExtra(TV_SHOW_VOTE_KEY, tvShowVoteValue)
             intent.putExtra(BEVERAGE_VOTE_KEY, beverageVoteValue)
