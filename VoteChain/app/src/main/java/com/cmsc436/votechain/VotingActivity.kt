@@ -58,11 +58,6 @@ class VotingActivity : AppCompatActivity() {
             val voteId = radioGroup!!.checkedRadioButtonId // get id of checked button - id is generated dynamically
             val voteString = findViewById<RadioButton>(voteId).text
 
-            Toast.makeText(
-                this,
-                "Submit Clicked : $voteString", Toast.LENGTH_LONG
-            ).show()
-
             val returnIntent = Intent()
                 .putExtra(VOTE_CATEGORY, category)
                 .putExtra(VOTE_VALUE, voteString)
