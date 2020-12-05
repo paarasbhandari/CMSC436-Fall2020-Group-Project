@@ -9,6 +9,8 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 
 
 private lateinit var auth: FirebaseAuth
@@ -70,10 +72,19 @@ class RegistrationActivity : AppCompatActivity() {
                     val intent = Intent(this@RegistrationActivity, CategoriesActivity::class.java)
                     startActivity(intent)
                 } else {
-                    Toast.makeText(
-                        baseContext, "Registration failed",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    var message = "An Unknown Exception \noccurred during registration"
+                    try {
+                        throw task.exception!!
+                    } catch (e: FirebaseAuthWeakPasswordException) {
+                        message = e.message.toString()
+                    } catch (e: FirebaseAuthUserCollisionException) {
+                        message = e.message.toString()
+                    } finally {
+                        Toast.makeText(
+                            baseContext, message,
+                                    Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
             }
     }
