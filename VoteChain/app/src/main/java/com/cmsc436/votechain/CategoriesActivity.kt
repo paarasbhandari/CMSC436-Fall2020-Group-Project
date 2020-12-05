@@ -9,6 +9,8 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatCheckedTextView
+import androidx.core.view.get
 import androidx.fragment.app.FragmentActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
@@ -25,7 +27,8 @@ private var tvShowVoteValue: String ?= null
 private var superheroVoteValue: String ?= null
 private var submitBtn: Button?= null
 private var database: FirebaseDatabase? = null
-
+private var currentChain: HashMap<String, HashMap<String, String>>? = null
+private var currentLatestHash: String? = null
 
 class CategoriesActivity : AppCompatActivity() {
 
@@ -56,16 +59,18 @@ class CategoriesActivity : AppCompatActivity() {
 
         listViewCategories = findViewById<View>(R.id.listViewCategories) as ListView
         val categoryList = arrayOf("TV Show", "Superhero", "Beverage")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, categoryList)
+        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_checked, categoryList)
         listViewCategories.adapter = adapter
 
         listViewCategories.onItemClickListener = AdapterView.OnItemClickListener { adapterView, view, i, l ->
-            //getting the selected artist
+            //getting the selected category
             val category = categoryList[i]
 
             //creating an intent
             val intent = Intent(applicationContext, VotingActivity::class.java)
+            // give current category to VotingActivity
             intent.putExtra("CATEGORY", category)
+            // give current vote to VotingActivity
             intent.putExtra(SUPER_HERO_VOTE_KEY, superheroVoteValue)
             intent.putExtra(TV_SHOW_VOTE_KEY, tvShowVoteValue)
             intent.putExtra(BEVERAGE_VOTE_KEY, beverageVoteValue)
@@ -152,7 +157,8 @@ class CategoriesActivity : AppCompatActivity() {
         return ""
     }
 
-    public fun submitVotes(){
+    private fun submitVotes(){
+
         val ref = database?.getReference("blocks")
 
         ref?.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -160,31 +166,27 @@ class CategoriesActivity : AppCompatActivity() {
                 // This method is called once with the initial value and again
                 // whenever data at this location is updated.
 
-                val value = dataSnapshot.getValue()
-
+                val value = dataSnapshot.value
                 val voteStr = getVoteString()
                 val hash = getSHA256Hash(voteStr)
-
                 val hashMap: HashMap<String, String> = HashMap<String, String>()
-                if (voteStr != "") {
 
+                if (voteStr != "") {
                     superheroVoteValue?.let { hashMap[SUPER_HERO_VOTE_KEY] = it }
                     beverageVoteValue?.let { hashMap[BEVERAGE_VOTE_KEY] = it }
                     tvShowVoteValue?.let { hashMap[TV_SHOW_VOTE_KEY] = it }
                     hashMap[HASH_KEY] = hash
-
-                } else {
-                    Toast.makeText(applicationContext, "Vote String is Empty", Toast.LENGTH_LONG)
-                        .show()
-                }
+                } else
+                    Toast.makeText(applicationContext, "Vote String is Empty", Toast.LENGTH_LONG).show()
 
                 var isGenesis = false
                 if (value == null) {
                     // no blocks currently, add genesis block
-                    hashMap.put(IS_GENESIS_KEY, IS_GENESIS_TRUE)
+                    hashMap[IS_GENESIS_KEY] = IS_GENESIS_TRUE
                     isGenesis = true
                 } else {
-                    hashMap.put(IS_GENESIS_KEY, IS_GENESIS_FALSE)
+                    hashMap[IS_GENESIS_KEY] = IS_GENESIS_FALSE
+                    currentChain = value as HashMap<String, HashMap<String, String>>
                 }
 
                 val latestHashRef = database?.getReference("latest_hash")
@@ -192,10 +194,12 @@ class CategoriesActivity : AppCompatActivity() {
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
                         // This method is called once with the initial value and again
                         // whenever data at this location is updated.
-                        val value = dataSnapshot.getValue()
-                        if (value != null) {
-                            val hashStr = value as String
-                            hashMap.put(PREV_HASH_KEY, hashStr)
+                        val latestHashValue = dataSnapshot.value
+
+                        if (latestHashValue != null) {
+                            val hashStr = latestHashValue as String
+                            hashMap[PREV_HASH_KEY] = hashStr
+                            currentLatestHash =  latestHashValue as String
                         }
                         val uid = auth.currentUser?.uid
                         if (uid != null) {
@@ -203,7 +207,6 @@ class CategoriesActivity : AppCompatActivity() {
                             // adding new block
                             val ref = database?.getReference("blocks")?.child(uid)
                             ref?.setValue(hashMap)
-
 
                             Toast.makeText(
                                 applicationContext,
@@ -220,8 +223,7 @@ class CategoriesActivity : AppCompatActivity() {
                                     override fun onDataChange(dataSnapshot: DataSnapshot) {
                                         // This method is called once with the initial value and again
                                         // whenever data at this location is updated.
-                                        val chain =
-                                            dataSnapshot.getValue() as HashMap<String, String>
+                                        val chain = dataSnapshot.getValue() as HashMap<String, String>
                                         Log.i(TAG, chain.size.toString())
 
                                         if (chain.size == 1) {
@@ -375,6 +377,9 @@ class CategoriesActivity : AppCompatActivity() {
             .setCancelable(false)
             .setPositiveButton("Ok") { dialog, id ->
                 destroyVoteChain()
+                database?.getReference("blocks")?.setValue(currentChain)
+                database?.getReference("latest_hash")?.setValue(currentLatestHash)
+                Toast.makeText(this, "Restoring Previous Chain", Toast.LENGTH_SHORT).show()
             }
         val alert = builder.create()
         alert.show()
@@ -420,14 +425,22 @@ class CategoriesActivity : AppCompatActivity() {
 
                 if (voteValue != null && voteValue?.isNotEmpty()) {
                     when (category) {
-                        "TV Show" -> tvShowVoteValue = voteValue
-                        "Superhero" -> superheroVoteValue = voteValue
-                        "Beverage" -> beverageVoteValue = voteValue
+                        "TV Show" -> { tvShowVoteValue = voteValue }
+                        "Superhero" -> { superheroVoteValue = voteValue }
+                        "Beverage" -> { beverageVoteValue = voteValue }
                     }
                 }
+                setCheckMarks()
             }
         }
     }
+
+    private fun setCheckMarks() {
+        if (tvShowVoteValue != null )(listViewCategories[0] as CheckedTextView).isChecked = true
+        if (superheroVoteValue != null )(listViewCategories[1] as CheckedTextView).isChecked = true
+        if (beverageVoteValue != null )(listViewCategories[2] as CheckedTextView).isChecked = true
+    }
+
 
     private fun getCnfVotesString(): String{
         val s = "TV Show: " + tvShowVoteValue + "\n" + "Superhero: " + superheroVoteValue + "\n" +  "Beverage: " + beverageVoteValue
