@@ -25,7 +25,6 @@ class RegistrationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(com.cmsc436.votechain.R.layout.activity_registration)
 
-
         auth = FirebaseAuth.getInstance()
         emailEditText = findViewById(com.cmsc436.votechain.R.id.email)
         passwordEditText = findViewById(com.cmsc436.votechain.R.id.password)
@@ -35,36 +34,18 @@ class RegistrationActivity : AppCompatActivity() {
 
     }
 
+    // Handle Registering a new user to the Firebase
     private fun register() {
 
         val email: String = emailEditText?.text.toString()
         val password = passwordEditText?.text.toString()
         val cnfPassword = passwordCnfEditText?.text.toString()
 
-        if (email.isEmpty()){
-            Toast.makeText(applicationContext, "Please enter email...", Toast.LENGTH_LONG).show()
-            return
-        }
+        if (false == handleErrors()) return
 
-        if (password.isEmpty()){
-            Toast.makeText(applicationContext, "Please enter password...", Toast.LENGTH_LONG).show()
-            return
-        }
-
-        if (cnfPassword.isEmpty()){
-            Toast.makeText(applicationContext, "Please confirm password...", Toast.LENGTH_LONG).show()
-            return
-        }
-
-        if (!password.equals(cnfPassword)){
-            Toast.makeText(
-                applicationContext,
-                "Passwords did not match! Please try again.",
-                Toast.LENGTH_LONG
-            ).show()
-            return
-        }
-
+        // Create new user with email and password
+        // handle firebase errors and output
+        // specific toast messages
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
@@ -80,16 +61,35 @@ class RegistrationActivity : AppCompatActivity() {
                     } catch (e: FirebaseAuthUserCollisionException) {
                         message = e.message.toString()
                     } finally {
-                        Toast.makeText(
-                            baseContext, message,
-                                    Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(baseContext, message,Toast.LENGTH_SHORT).show()
                     }
                 }
             }
     }
-
-
-
-
+    
+    // Cleanly handle UI based registration errors 
+    private fun handleErrors() {
+        output = true
+        if (email.isEmpty()){
+            Toast.makeText(applicationContext, "Please enter email...", Toast.LENGTH_LONG).show()
+            output = false
+        }
+        if (password.isEmpty()){
+            Toast.makeText(applicationContext, "Please enter password...", Toast.LENGTH_LONG).show()
+            output = false
+        }
+        if (cnfPassword.isEmpty()){
+            Toast.makeText(applicationContext, "Please confirm password...", Toast.LENGTH_LONG).show()
+            output = false
+        }
+        if (!password.equals(cnfPassword)){
+            Toast.makeText(
+                applicationContext,
+                "Passwords did not match! Please try again.",
+                Toast.LENGTH_LONG
+            ).show()
+            output = false
+        }
+        return output
+    }
 }
