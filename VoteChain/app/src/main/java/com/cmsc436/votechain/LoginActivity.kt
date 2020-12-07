@@ -39,8 +39,8 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    // Handle User sign in with email and password
     private fun logIn() {
-
         val email: String = emailEditText?.text.toString()
         val password = passwordEditText?.text.toString()
 
@@ -54,18 +54,16 @@ class LoginActivity : AppCompatActivity() {
             return
         }
 
+        // Use firebase authentication to 
+        // finish sign in process
         auth!!.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener{task ->
                 if (task.isSuccessful){
                     Toast.makeText(applicationContext, "Login successful", Toast.LENGTH_LONG).show()
                     val intent = Intent(this@LoginActivity, CategoriesActivity::class.java)
                     startActivity(Intent(intent))
-                } else {
+                } else
                     Toast.makeText(applicationContext, "Login failed! Please try again later.", Toast.LENGTH_LONG).show()
-                }
             }
-
     }
-
-
 }
