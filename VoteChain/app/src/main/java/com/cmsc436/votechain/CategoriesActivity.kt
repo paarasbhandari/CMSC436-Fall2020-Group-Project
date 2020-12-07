@@ -156,11 +156,15 @@ class CategoriesActivity : AppCompatActivity() {
         }
         return ""
     }
+    
+    /* submitVotes function handles the submission of user votes.
+       This includes checking for various errors, checking for voting
+       fraud, and calling the SHA256 Hash on the user's vote data. 
+    */
 
     private fun submitVotes(){
 
         val ref = database?.getReference("blocks")
-
         ref?.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // This method is called once with the initial value and again
@@ -306,45 +310,31 @@ class CategoriesActivity : AppCompatActivity() {
                                                                 }
 
                                                             }
-
-                                                            override fun onCancelled(error: DatabaseError) {
-
-                                                            }
+                                                            override fun onCancelled(error: DatabaseError) { }
                                                         })
-
-
                                                     } else {
                                                         Toast.makeText(
                                                             applicationContext,
                                                             "Error 1",
-                                                            Toast.LENGTH_LONG
-                                                        )
+                                                            Toast.LENGTH_LONG)
                                                             .show()
                                                     }
                                                 }
-
-                                                override fun onCancelled(error: DatabaseError) {
-                                                }
+                                                override fun onCancelled(error: DatabaseError) { }
                                             })
                                         }
                                     }
-
-                                    override fun onCancelled(error: DatabaseError) {
-                                    }
+                                    override fun onCancelled(error: DatabaseError) { }
                                 })
-
                         } else {
                             Toast.makeText(applicationContext, "UID is null", Toast.LENGTH_LONG)
                                 .show()
                         }
                     }
-
-                    override fun onCancelled(error: DatabaseError) {
-                    }
+                    override fun onCancelled(error: DatabaseError) { }
                 })
-
             }
-
+            
             override fun onCancelled(error: DatabaseError) {
                 // Failed to read value
                 Log.i(TAG, "Failed to read value.", error.toException())
@@ -353,6 +343,7 @@ class CategoriesActivity : AppCompatActivity() {
 
     }
 
+    // Remove all blocks and the current latest hash
     private fun destroyVoteChain(){
         val blocksRef = database?.getReference("blocks")
         blocksRef?.removeValue()
@@ -360,6 +351,7 @@ class CategoriesActivity : AppCompatActivity() {
         latestHashRef?.removeValue()
     }
 
+    // Add SignOut Button to Menu
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.item1 -> {
@@ -369,16 +361,20 @@ class CategoriesActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
-
+    
+    // Build and Display Alert Dialog box informing
+    // users that they have commited fraud
+    // The chain is destroyed and restored by reverting
+    // the references to their previous information.
     private fun fraudDetected(){
+        destroyVoteChain()
+        database?.getReference("blocks")?.setValue(currentChain)
+        database?.getReference("latest_hash")?.setValue(currentLatestHash)
         val builder =
             AlertDialog.Builder(this@CategoriesActivity)
         builder.setMessage("VOTING FRAUD DETECTED. \nDESTROYING VOTE CHAIN")
             .setCancelable(false)
             .setPositiveButton("Ok") { dialog, id ->
-                destroyVoteChain()
-                database?.getReference("blocks")?.setValue(currentChain)
-                database?.getReference("latest_hash")?.setValue(currentLatestHash)
                 Toast.makeText(this, "Restoring Previous Chain", Toast.LENGTH_SHORT).show()
             }
         val alert = builder.create()
@@ -390,11 +386,14 @@ class CategoriesActivity : AppCompatActivity() {
         auth.signOut()
     }
 
+    // disabling back button - reduce errors
     override fun onBackPressed() {
-        //disabling back button
         Toast.makeText(applicationContext, "Click Options Menu to Log Out.", Toast.LENGTH_LONG).show()
     }
 
+    // Create hash using SHA256 Algorithm with user data
+    // as the input. 
+    // Result is a unique hash
     private fun getSHA256Hash(data: String): String {
         val result: String = ""
         try {
@@ -413,7 +412,7 @@ class CategoriesActivity : AppCompatActivity() {
         }
     }
 
-
+    // Handle receiving votes from Voting Activity
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         Log.d(TAG, "Entered onActivityResult")
 
@@ -435,13 +434,14 @@ class CategoriesActivity : AppCompatActivity() {
         }
     }
 
+    // Set UI Checkmarks next to categories which have a stored vote
     private fun setCheckMarks() {
         if (tvShowVoteValue != null )(listViewCategories[0] as CheckedTextView).isChecked = true
         if (superheroVoteValue != null )(listViewCategories[1] as CheckedTextView).isChecked = true
         if (beverageVoteValue != null )(listViewCategories[2] as CheckedTextView).isChecked = true
     }
 
-
+    // Confirm Votes String Display
     private fun getCnfVotesString(): String{
         val s = "TV Show: " + tvShowVoteValue + "\n" + "Superhero: " + superheroVoteValue + "\n" +  "Beverage: " + beverageVoteValue
         return s
