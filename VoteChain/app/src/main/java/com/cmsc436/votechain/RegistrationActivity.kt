@@ -41,7 +41,7 @@ class RegistrationActivity : AppCompatActivity() {
         val password = passwordEditText?.text.toString()
         val cnfPassword = passwordCnfEditText?.text.toString()
 
-        if (false == handleErrors()) return
+        if (false == handleErrors(email, password,cnfPassword)) return
 
         // Create new user with email and password
         // handle firebase errors and output
@@ -68,8 +68,8 @@ class RegistrationActivity : AppCompatActivity() {
     }
     
     // Cleanly handle UI based registration errors 
-    private fun handleErrors() {
-        output = true
+    private fun handleErrors(email:String, password:String,cnfPassword:String) : Boolean {
+        var output = true
         if (email.isEmpty()){
             Toast.makeText(applicationContext, "Please enter email...", Toast.LENGTH_LONG).show()
             output = false
